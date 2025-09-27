@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Allow all web crawlers access to all content
+# Sitemap location
+Sitemap: https://deepak.thedev.id/sitemap.xml

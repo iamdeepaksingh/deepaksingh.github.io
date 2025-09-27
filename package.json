@@ -1,0 +1,22 @@
+{
+  "name": "deepak-portfolio",
+  "version": "1.0.0",
+  "description": "Modern portfolio website for Deepak Kumar Singh - Software Architect",
+  "keywords": ["portfolio", "developer", "software-architect", "power-platform", "azure", "ai"],
+  "author": "Deepak Kumar Singh <deepak.singh.buzz@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamdeepaksingh/deepaksingh.github.io"
+  },
+  "homepage": "https://deepak.thedev.id",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx serve .",
+    "validate": "html5validator --root . --format text",
+    "optimize": "echo 'Run optimization tools'"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}

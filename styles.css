@@ -386,6 +386,35 @@ section {
     white-space: nowrap;
 }
 
+/* Certification Styling */
+.work-certifications {
+    margin-top: var(--space-lg);
+}
+
+.work-certifications h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.certification-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.cert-tag {
+    background: var(--accent-color);
+    color: var(--text-primary);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--border-color);
+}
+
 /* ===== WORK SECTION ===== */
 .work-items {
     max-width: 900px;

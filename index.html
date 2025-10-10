@@ -8,7 +8,7 @@
     <meta name="keywords" content="Software Architect, Power Platform, Azure, Dynamics 365, AI, Machine Learning, Developer">
     
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.emailjs.com https://plausible.io; connect-src 'self' https://api.emailjs.com https://plausible.io; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.emailjs.com https://cdn.jsdelivr.net https://plausible.io; connect-src 'self' https://api.emailjs.com https://plausible.io; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; form-action 'self' https://api.emailjs.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
@@ -698,8 +698,46 @@
         </div>
     </footer>
 
-    <!-- EmailJS SDK -->
+    <!-- EmailJS SDK - Updated to latest version -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+        // Initialize EmailJS with proper loading check
+        function initializeEmailJS() {
+            //console.log('Attempting to initialize EmailJS...');
+            
+            // Check if EmailJS loaded successfully
+            if (typeof emailjs !== 'undefined') {
+                try {
+                    // Initialize EmailJS with the working configuration from test file
+                    emailjs.init('KV0pU49NLP7qljz7a');
+                    //console.log('EmailJS loaded and initialized successfully');
+                    //console.log('Using Public Key: KV0pU49NLP7qljz7a');
+                    //console.log('Using Service ID: service_dtrgs1k');
+                    //console.log('Using Template ID: template_q5xxp1n');
+                    
+                    // Test that emailjs is working
+                    //console.log('EmailJS object check:', typeof emailjs.send);
+                    window.emailjsReady = true;
+                } catch (error) {
+                    //console.error('Error initializing EmailJS:', error);
+                    window.emailjsReady = false;
+                }
+            } else {
+                console.error('EmailJS failed to load - emailjs is not defined');
+                window.emailjsReady = false;
+                
+                // Retry after a short delay
+                setTimeout(() => {
+                    console.log('Retrying EmailJS initialization...');
+                    initializeEmailJS();
+                }, 1000);
+            }
+        }
+        
+        // Initialize immediately and also on window load
+        initializeEmailJS();
+        window.addEventListener('load', initializeEmailJS);
+    </script>
     
     <!-- Configuration -->
     <script src="config.js"></script>

@@ -235,25 +235,16 @@ function initializeContactForm() {
     
     if (contactForm) {
         contactForm.addEventListener('submit', handleFormSubmit);
-    }
-    
-    // Initialize EmailJS with enhanced security
-    if (typeof emailjs !== 'undefined' && typeof EMAIL_CONFIG !== 'undefined') {
-        // Initialize with config
-        emailjs.init(EMAIL_CONFIG.publicKey);
+        //console.log('Contact form event listener attached');
         
-        // Domain validation
-        const currentDomain = window.location.hostname;
-        if (!EMAIL_CONFIG.allowedDomains.some(domain => currentDomain.includes(domain))) {
-            console.warn('Contact form disabled on unauthorized domain');
-            return;
+        // Simple check if EmailJS is ready (it's initialized in index.html now)
+        if (typeof emailjs !== 'undefined') {
+            //console.log('EmailJS is ready for use');
+        } else {
+            //console.error('EmailJS not available');
         }
-        
-        // Additional security checks
-        if (!validateEnvironment()) {
-            console.warn('Contact form disabled due to security restrictions');
-            return;
-        }
+    } else {
+        //console.error('Contact form not found');
     }
 }
 
@@ -268,54 +259,70 @@ async function handleFormSubmit(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
     
-    // Enhanced validation
-    if (!validateSubmission(formData)) {
+    console.log('📤 Starting email send process...');
+    
+    // Check if EmailJS is ready
+    if (typeof emailjs === 'undefined') {
+        //console.error('EmailJS is not defined - script not loaded');
+        showNotification('Email service not available. Please refresh the page and try again.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
         return;
     }
     
-    // Rate limiting check
-    if (!checkRateLimit()) {
-        showNotification('Too many submissions. Please wait before sending another message.', 'error');
+    if (!window.emailjsReady) {
+        //console.error('EmailJS not ready yet');
+        showNotification('Email service is still loading. Please wait a moment and try again.', 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
         return;
     }
     
-    // Prepare data for EmailJS
+    // Prepare data for EmailJS (using the same structure as test file)
     const templateParams = {
-        from_name: sanitizeInput(formData.get('name')),
-        from_email: sanitizeInput(formData.get('email')),
-        subject: sanitizeInput(formData.get('subject')),
-        message: sanitizeInput(formData.get('message')),
+        from_name: formData.get('name'),
+        from_email: formData.get('email'),
+        subject: formData.get('subject'),
+        message: formData.get('message'),
         to_name: 'Deepak Kumar Singh',
-        timestamp: new Date().toISOString(),
-        domain: window.location.hostname
     };
     
+    console.log('📋 Template params:', JSON.stringify(templateParams, null, 2));
+    
     try {
-        // Send email using EmailJS with config
-        if (typeof emailjs !== 'undefined' && typeof EMAIL_CONFIG !== 'undefined') {
-            await emailjs.send(
-                EMAIL_CONFIG.serviceId,
-                EMAIL_CONFIG.templateId,
-                templateParams
-            );
-            
-            // Show success message
-            showNotification('Message sent successfully! Thank you for reaching out.', 'success');
-            
-            // Reset form
-            e.target.reset();
-        } else {
-            // Fallback if EmailJS is not loaded
-            throw new Error('EmailJS not loaded');
-        }
+        // Send email using EmailJS (same approach as test file)
+        //console.log('Calling emailjs.send()...');
+        //console.log('EmailJS object check:', typeof emailjs, typeof emailjs.send);
+        
+        const response = await emailjs.send(
+            'service_dtrgs1k',
+            'template_q5xxp1n',
+            templateParams
+        );
+        
+        //console.log(`Email sent successfully! Response:`, response);
+        showNotification('✅ Message sent successfully! Thank you for reaching out.', 'success');
+        
+        // Reset form
+        e.target.reset();
         
     } catch (error) {
-        console.error('Form submission error:', error);
-        showNotification('Sorry, there was an error sending your message. Please try again.', 'error');
+        //console.log('Error sending email:');
+        //console.log('   - Error Type:', error.name || 'Unknown');
+        //console.log('   - Error Message:', error.message || 'No message');
+        //console.log('   - Error Code:', error.status || error.code || 'No code');
+        //console.log('   - Full Error:', error);
+        
+        // Common error solutions
+        if (error.message && error.message.includes('Invalid')) {
+            //console.log('Suggestion: Check your EmailJS Service ID, Template ID, or Public Key');
+        } else if (error.status === 412) {
+            //console.log('Suggestion: Gmail API scope issue - try reconnecting Gmail service');
+        } else if (error.status === 400) {
+            //console.log('Suggestion: Template variable mismatch - check template setup');
+        }
+        
+        showNotification('Failed to send message. Please try again or contact me directly.', 'error');
     } finally {
         // Reset button state
         submitBtn.disabled = false;
@@ -479,7 +486,7 @@ preloadCriticalResources();
 // ===== ANALYTICS & TRACKING =====
 function trackInteraction(category, action, label) {
     // Add your analytics tracking code here
-    console.log('Analytics:', { category, action, label });
+    //console.log('Analytics:', { category, action, label });
 }
 
 // Track important interactions
@@ -504,95 +511,6 @@ window.addEventListener('unhandledrejection', (e) => {
     // Add error reporting here if needed
 });
 
-// ===== SECURITY HELPER FUNCTIONS =====
-function validateEnvironment() {
-    // Check if we're in a legitimate environment
-    const userAgent = navigator.userAgent;
-    const suspiciousPatterns = ['bot', 'crawler', 'spider', 'scraper'];
-    
-    // Allow legitimate bots but block suspicious ones
-    if (suspiciousPatterns.some(pattern => userAgent.toLowerCase().includes(pattern))) {
-        const legitBots = ['googlebot', 'bingbot'];
-        if (!legitBots.some(bot => userAgent.toLowerCase().includes(bot))) {
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-function validateSubmission(formData) {
-    const config = EMAIL_CONFIG.validation;
-    
-    const name = formData.get('name').trim();
-    const email = formData.get('email').trim();
-    const subject = formData.get('subject').trim();
-    const message = formData.get('message').trim();
-    
-    // Length validations
-    if (name.length < config.minNameLength || name.length > config.maxNameLength) {
-        showNotification(`Name must be between ${config.minNameLength} and ${config.maxNameLength} characters.`, 'error');
-        return false;
-    }
-    
-    if (subject.length > config.maxSubjectLength) {
-        showNotification(`Subject must be less than ${config.maxSubjectLength} characters.`, 'error');
-        return false;
-    }
-    
-    if (message.length > config.maxMessageLength) {
-        showNotification(`Message must be less than ${config.maxMessageLength} characters.`, 'error');
-        return false;
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showNotification('Please enter a valid email address.', 'error');
-        return false;
-    }
-    
-    // Check for spam patterns
-    const spamKeywords = ['viagra', 'casino', 'lottery', 'winner', 'congratulations'];
-    const content = (name + email + subject + message).toLowerCase();
-    if (spamKeywords.some(keyword => content.includes(keyword))) {
-        showNotification('Message contains suspicious content.', 'error');
-        return false;
-    }
-    
-    return true;
-}
-
-function checkRateLimit() {
-    const now = Date.now();
-    const oneHourAgo = now - (60 * 60 * 1000);
-    
-    // Get recent submissions
-    let submissions = JSON.parse(localStorage.getItem('contactSubmissions') || '[]');
-    submissions = submissions.filter(timestamp => timestamp > oneHourAgo);
-    
-    // Check limit
-    if (submissions.length >= EMAIL_CONFIG.maxSubmissionsPerHour) {
-        return false;
-    }
-    
-    // Add current submission
-    submissions.push(now);
-    localStorage.setItem('contactSubmissions', JSON.stringify(submissions));
-    
-    return true;
-}
-
-function sanitizeInput(input) {
-    if (typeof input !== 'string') return '';
-    
-    return input
-        .trim()
-        .replace(/[<>]/g, '') // Remove potential HTML tags
-        .replace(/javascript:/gi, '') // Remove javascript: protocol
-        .slice(0, 1000); // Limit length
-}
-
 // ===== EXPORT FOR TESTING =====
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -600,9 +518,6 @@ if (typeof module !== 'undefined' && module.exports) {
         filterProjects,
         showNotification,
         debounce,
-        throttle,
-        validateSubmission,
-        checkRateLimit,
-        sanitizeInput
+        throttle
     };
 }
